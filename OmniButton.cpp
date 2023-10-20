@@ -9,6 +9,7 @@ OmniButton::OmniButton(int buttonPin) {
 }
 
 int OmniButton::pin() { return _buttonPin; }
+int OmniButton::pressCount() { return _pressCount; }
 void OmniButton::setVerbose(bool verbose) { _verbose = verbose; }
 void OmniButton::setSinglePressCallback(void (*callback)()) {
   _singlePressCallback = callback;
@@ -16,11 +17,11 @@ void OmniButton::setSinglePressCallback(void (*callback)()) {
 void OmniButton::setDoublePressDelay(unsigned long doublePressDelay) {
   _doublePressDelay = doublePressDelay;
 }
-void OmniButton::setLongHoldDelay(unsigned long holdDelay) {
+void OmniButton::setHoldDelay(unsigned long holdDelay) {
   _holdDelay = holdDelay;
 }
-void OmniButton::setTriplePressCallback(void (*callback)()) {
-  _triplePressCallback = callback;
+void OmniButton::setMultiPressCallback(void (*callback)()) {
+  _multiPressCallback = callback;
 }
 void OmniButton::setDoublePressCallback(void (*callback)()) {
   _doublePressCallback = callback;
@@ -31,11 +32,11 @@ void OmniButton::setLongPressDuration(unsigned long duration) {
 void OmniButton::setLongPressCallback(void (*callback)()) {
   _longPressCallback = callback;
 }
-void OmniButton::setLongHoldCallback(void (*callback)()) {
-  _longHoldCallback = callback;
+void OmniButton::setHoldCallback(void (*callback)()) {
+  _holdCallback = callback;
 }
 
-void OmniButton::isr() {
+void OmniButton::listen() {
   if (digitalRead(_buttonPin) == LOW) {  // button pressed
     if (!_buttonPressed) {
       if (_verbose) {
@@ -55,8 +56,8 @@ void OmniButton::isr() {
         if (_verbose) {
           Serial.println("Holding...");
         }
-        if (_longHoldCallback != nullptr) {
-          _longHoldCallback();
+        if (_holdCallback != nullptr) {
+          _holdCallback();
         }
       }
     }
@@ -91,12 +92,14 @@ void OmniButton::isr() {
               _doublePressCallback();
             }
             break;
-          case 3:
-            if (_verbose) {
-              Serial.println("--- Triple Press ---");
-            }
-            if (_triplePressCallback != nullptr) {
-              _triplePressCallback();
+          default:
+            if (_pressCount > 2) {
+              if (_verbose) {
+                Serial.println("--- Multi Press ---");
+              }
+              if (_multiPressCallback != nullptr) {
+                _multiPressCallback();
+              }
             }
             break;
         }
